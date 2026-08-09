@@ -5,17 +5,45 @@ import config from "../../config/index";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
 import { ILoginUser } from "./auth.interface";
+import { RegisterUser } from "./auth.validation";
+import httpStatus from "http-status";
+import { AppError } from "../../utils/AppError";
+
+const registerUser = async (payload: RegisterUser) => {
+  const { name, email, password, role } = payload;
+
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (isUserExist) {
+    throw new AppError("User already exists", httpStatus.CONFLICT);
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    password,
+    Number(config.bcrypt_salt_rounds),
+  );
+
+  const createdUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    },
+    omit: {
+      password: true,
+    },
+  });
+
+  return createdUser;
+};
 
 const loginUser = async (payload : ILoginUser) => {
     const { email, password } = payload;
-
-    // const user = await prisma.user.findUnique({
-    //     where : {email}
-    // })
-
-    // if(!user){
-    //     throw new Error("User not found");
-    // }
 
     const user = await prisma.user.findUniqueOrThrow({
         where : {email}
@@ -38,27 +66,11 @@ const loginUser = async (payload : ILoginUser) => {
         role: user.role
     }
 
-    // const accessToken = jwt.sign(
-    //     jwtPayload, 
-    //     config.jwt_access_secret, 
-    //     {
-    //         expiresIn : config.jwt_access_expires_in
-    //     } as SignOptions
-    // )
-
     const accessToken = jwtUtils.createToken(
         jwtPayload,
         config.jwt_access_secret,
         config.jwt_access_expires_in as SignOptions
     );
-
-    // const refreshToken = jwt.sign(
-    //     jwtPayload, 
-    //     config.jwt_refresh_secret, 
-    //     {
-    //         expiresIn : config.jwt_refresh_expires_in
-    //     } as SignOptions
-    // );
 
     const refreshToken = jwtUtils.createToken(
         jwtPayload,
@@ -110,6 +122,7 @@ const refreshToken = async (refreshToken : string) => {
 
 
 export const authService = {
+    registerUser,
     loginUser,
     refreshToken
 }

@@ -4,6 +4,19 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { authService } from "./auth.service";
 
+
+const registerUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const payload = req.body;
+    const user = await authService.registerUser(payload);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "User Registered Successfully",
+      data: { user },
+    });
+  });
+
 const loginUser = catchAsync(async (req : Request, res : Response, next : NextFunction) => {
     const payload = req.body;
 
@@ -54,6 +67,7 @@ const refreshToken = catchAsync(async (req : Request, res : Response, next: Next
 })
 
 export const authController = {
+    registerUser,
     loginUser,
     refreshToken
 }
