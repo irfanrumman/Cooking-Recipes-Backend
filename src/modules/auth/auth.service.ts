@@ -56,7 +56,7 @@ const loginUser = async (payload : ILoginUser) => {
     const isPasswordMatched = await bcrypt.compare(password, user.password);
 
     if(!isPasswordMatched){
-        throw new Error("Password is incorrect");
+        throw new AppError("Invalid email or password", httpStatus.UNAUTHORIZED);
     }
 
     const jwtPayload = {

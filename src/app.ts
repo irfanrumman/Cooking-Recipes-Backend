@@ -45,26 +45,8 @@ app.use("/api/subscription", subscriptionRoutes)
 app.use("/api/premium", premiumRoutes)
 
 
-// app.use((req : Request, res : Response) => {
-//     res.status(404).json({
-//         message : "Route not found",
-//         path : req.originalUrl,
-//         date : Date()
-//     })
-// })
-
-
 app.use(notFound)
 
-// app.use((err : any, req : Request, res : Response, next : NextFunction) => {
-//     console.log(err);
-//     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-//         success: false,
-//         statusCode: httpStatus.INTERNAL_SERVER_ERROR,
-//         message: err.message,
-//         error: err.stack
-//     })
-// })
 
 app.use(globalErrorHandler)
 
