@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { JwtPayload, SignOptions } from "jsonwebtoken";
 // import config from "../../config";
 import config from "../../config/index";
@@ -20,12 +21,19 @@ const registerUser = async (payload: RegisterUser) => {
 
   if (isUserExist) {
     throw new AppError("User already exists", httpStatus.CONFLICT);
-  }
+  };
+
 
   const hashedPassword = await bcrypt.hash(
     password,
     Number(config.bcrypt_salt_rounds),
   );
+
+  const expirationSeconds = 5 * 60;
+
+  const otpKey = `user-registration-otp:${email}`;
+	const otpValue = crypto.randomInt(100000, 1000000).toString();
+    
 
   const createdUser = await prisma.user.create({
     data: {
@@ -39,8 +47,11 @@ const registerUser = async (payload: RegisterUser) => {
     },
   });
 
+   
+
   return createdUser;
 };
+
 
 const loginUser = async (payload : ILoginUser) => {
     const { email, password } = payload;
