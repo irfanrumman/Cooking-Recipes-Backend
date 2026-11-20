@@ -32,8 +32,18 @@ const registerUser = async (payload: RegisterUser) => {
   const expirationSeconds = 5 * 60;
 
   const otpKey = `user-registration-otp:${email}`;
-	const otpValue = crypto.randomInt(100000, 1000000).toString();
+  const otpValue = crypto.randomInt(100000, 1000000).toString();
+
+//   await redisClient.set(otpKey, otpValue, {
+// 		expiration: {
+// 			type: "EX",
+// 			value: expirationSeconds,
+// 		},
+// 	});
+
+    const userRegistrationKey = `user-registration-data:${email}`;
     
+
 
   const createdUser = await prisma.user.create({
     data: {
