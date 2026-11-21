@@ -9,6 +9,7 @@ import { ILoginUser } from "./auth.interface";
 import { RegisterUser } from "./auth.validation";
 import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
+import { redisClient } from "../../lib/redis";
 
 const registerUser = async (payload: RegisterUser) => {
   const { name, email, password, role } = payload;
@@ -34,14 +35,22 @@ const registerUser = async (payload: RegisterUser) => {
   const otpKey = `user-registration-otp:${email}`;
   const otpValue = crypto.randomInt(100000, 1000000).toString();
 
-//   await redisClient.set(otpKey, otpValue, {
-// 		expiration: {
-// 			type: "EX",
-// 			value: expirationSeconds,
-// 		},
-// 	});
+  await redisClient.set(otpKey, otpValue, {
+		expiration: {
+			type: "EX",
+			value: expirationSeconds,
+		},
+	});
+	
 
-    const userRegistrationKey = `user-registration-data:${email}`;
+    // const userRegistrationKey = `user-registration-data:${email}`;
+
+    // const redisUserDataPayload = {
+	// 	name,
+	// 	email,
+	// 	password: hashedPassword,
+	// 	role,
+	// };
     
 
 
