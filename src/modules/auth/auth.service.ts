@@ -43,14 +43,14 @@ const registerUser = async (payload: RegisterUser) => {
 	});
 	
 
-    // const userRegistrationKey = `user-registration-data:${email}`;
+    const userRegistrationKey = `user-registration-data:${email}`;
 
-    // const redisUserDataPayload = {
-	// 	name,
-	// 	email,
-	// 	password: hashedPassword,
-	// 	role,
-	// };
+    const redisUserDataPayload = {
+		name,
+		email,
+		password: hashedPassword,
+		role,
+	};
     
 
 
