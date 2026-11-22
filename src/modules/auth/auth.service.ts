@@ -51,6 +51,13 @@ const registerUser = async (payload: RegisterUser) => {
 		password: hashedPassword,
 		role,
 	};
+
+     await redisClient.set(userRegistrationKey, JSON.stringify(redisUserDataPayload), {
+		expiration: {
+			type: "EX",
+			value: expirationSeconds,
+		},
+	});
     
 
 
