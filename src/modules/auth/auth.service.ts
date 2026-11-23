@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import ejs from "ejs";
 import { JwtPayload, SignOptions } from "jsonwebtoken";
 // import config from "../../config";
 import config from "../../config/index";
@@ -10,6 +11,7 @@ import { RegisterUser } from "./auth.validation";
 import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
 import { redisClient } from "../../lib/redis";
+import path from "path";
 
 const registerUser = async (payload: RegisterUser) => {
   const { name, email, password, role } = payload;
@@ -58,6 +60,30 @@ const registerUser = async (payload: RegisterUser) => {
 			value: expirationSeconds,
 		},
 	});
+
+    const tempatePath = path.join(
+		process.cwd(),
+		"src/app/templates/registration-user-otp.ejs",
+	);
+
+	const templateData = {
+		name,
+		email,
+		otp: otpValue,
+		expirationMinutes: expirationSeconds / 60,
+	};
+
+    const html = await ejs.renderFile(tempatePath, templateData);
+
+    // await transporter.sendMail({
+	// 	from: {
+	// 			name: "Cooking Recipes",
+	// 			address: config.email_sender,
+	// 			},
+	// 	to: email,
+	// 	subject: "Email Verification",
+	// 	html,
+	// });
     
 
 
