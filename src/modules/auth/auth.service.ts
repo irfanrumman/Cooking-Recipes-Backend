@@ -2,8 +2,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import ejs from "ejs";
 import { JwtPayload, SignOptions } from "jsonwebtoken";
-// import config from "../../config";
-import config from "../../config/index";
+import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
 import { ILoginUser } from "./auth.interface";
@@ -12,6 +11,7 @@ import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
 import { redisClient } from "../../lib/redis";
 import path from "path";
+import { transporter } from "../../lib/nodemailer";
 
 const registerUser = async (payload: RegisterUser) => {
   const { name, email, password, role } = payload;
@@ -75,33 +75,33 @@ const registerUser = async (payload: RegisterUser) => {
 
     const html = await ejs.renderFile(tempatePath, templateData);
 
-    // await transporter.sendMail({
-	// 	from: {
-	// 			name: "Cooking Recipes",
-	// 			address: config.email_sender,
-	// 			},
-	// 	to: email,
-	// 	subject: "Email Verification",
-	// 	html,
-	// });
+    await transporter.sendMail({
+		from: {
+				name: "Cooking Recipes",
+				address: config.email_sender,
+				},
+		to: email,
+		subject: "Email Verification",
+		html,
+	});
     
 
 
-  const createdUser = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    },
-    omit: {
-      password: true,
-    },
-  });
+//   const createdUser = await prisma.user.create({
+//     data: {
+//       name,
+//       email,
+//       password: hashedPassword,
+//       role,
+//     },
+//     omit: {
+//       password: true,
+//     },
+//   });
 
    
 
-  return createdUser;
+//   return createdUser;
 };
 
 
