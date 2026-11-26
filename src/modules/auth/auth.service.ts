@@ -5,13 +5,15 @@ import { JwtPayload, SignOptions } from "jsonwebtoken";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { jwtUtils } from "../../utils/jwt";
-import { ILoginUser } from "./auth.interface";
+import { ILoginUser, IVerifyEmailPayload } from "./auth.interface";
 import { RegisterUser } from "./auth.validation";
 import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
 import { redisClient } from "../../lib/redis";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
+import { ActiveStatus } from "../../../generated/prisma/enums";
+
 
 const registerUser = async (payload: RegisterUser) => {
   const { name, email, password, role } = payload;
@@ -105,6 +107,77 @@ const registerUser = async (payload: RegisterUser) => {
 };
 
 
+const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
+
+    const otp = payload.otp;
+    const email = payload.email.trim().toLowerCase();
+
+    const isUserExist = await prisma.user.findUnique({
+        where : {email},
+    });
+
+    if(!isUserExist){
+        throw new AppError("User does not exist", httpStatus.NOT_FOUND);
+    };
+
+    if(isUserExist.activeStatus === ActiveStatus.ACTIVE){
+        throw new AppError("User is already verified", httpStatus.BAD_REQUEST);
+    };
+
+    if(isUserExist.activeStatus === ActiveStatus.BLOCKED){
+        throw new AppError("User is blocked", httpStatus.BAD_REQUEST);
+    };
+
+ 
+
+    const otpKey = `user-registration-otp:${email}`;
+    const redisOtp = await redisClient.get(otpKey);
+
+    if (!redisOtp) {
+        throw new AppError("OTP has expired or is invalid", httpStatus.BAD_REQUEST);
+    }
+
+    if (redisOtp !== otp) {
+        throw new AppError("Invalid OTP", httpStatus.BAD_REQUEST);
+    }
+
+    await redisClient.del(otpKey);
+
+    const userRegistrationKey = `user-registration-data:${email}`;
+    const redisUserData = await redisClient.get(userRegistrationKey);
+
+    if (!redisUserData) {
+        throw new AppError("User does not exist", httpStatus.BAD_REQUEST);
+    };
+
+    const userPayload = JSON.parse(redisUserData);
+
+      const createdUser = await prisma.user.create({
+    data: {
+      name: userPayload.name,
+      email: userPayload.email,
+      password: userPayload.password,
+      role: userPayload.role,
+    },
+    omit: {
+      password: true,
+    },
+  });
+
+  await redisClient.del(userRegistrationKey);
+
+//   const tempatePath = path.join(
+//         process.cwd(),
+//         "src/app/templates/registration-user-success.ejs",
+//     );
+
+   
+
+  return createdUser;
+
+};
+
+
 const loginUser = async (payload : ILoginUser) => {
     const { email, password } = payload;
 
@@ -112,7 +185,7 @@ const loginUser = async (payload : ILoginUser) => {
         where : {email}
     })
 
-    if (user.activeStatus === "BLOCKED") {
+    if (user.activeStatus === ActiveStatus.BLOCKED) {
         throw new Error("Your account has been blocked. Please contact support.");
     }
 
