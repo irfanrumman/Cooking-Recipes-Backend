@@ -171,7 +171,21 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
         "src/app/templates/user-welcome-email.ejs",
     );
 
-   
+    const templateData = {
+        name: createdUser.name,
+    };
+
+    const html = await ejs.renderFile(tempatePath, templateData);
+
+    await transporter.sendMail({
+        from: {
+                name: "Cooking Recipes",
+                address: config.email_sender,
+        },
+        to: email,
+        subject: "Welcome to Cooking Recipes",
+        html,
+    });
 
   return createdUser;
 
