@@ -166,10 +166,10 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
 
   await redisClient.del(userRegistrationKey);
 
-//   const tempatePath = path.join(
-//         process.cwd(),
-//         "src/app/templates/registration-user-success.ejs",
-//     );
+  const tempatePath = path.join(
+        process.cwd(),
+        "src/app/templates/user-welcome-email.ejs",
+    );
 
    
 
