@@ -273,6 +273,7 @@ const refreshToken = async (refreshToken : string) => {
 
 export const authService = {
     registerUser,
+    verifyUserEmail,
     loginUser,
     refreshToken
 }

@@ -7,15 +7,30 @@ import { authService } from "./auth.service";
 
 const registerUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const payload = req.body;
-    const user = await authService.registerUser(payload);
+  await authService.registerUser(payload);
 
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "User Registered Successfully",
+      message: "Send OTP to verify your email address",
+      data: null,
+    });
+  });
+
+  const verifyUserEmail = catchAsync(async (req: Request, res: Response) => {
+
+    const payload = req.body;
+    const user = await authService.verifyUserEmail(payload);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User Email Verified Successfully",
       data: { user },
     });
   });
+
+
 
 const loginUser = catchAsync(async (req : Request, res : Response, next : NextFunction) => {
     const payload = req.body;
@@ -68,6 +83,7 @@ const refreshToken = catchAsync(async (req : Request, res : Response, next: Next
 
 export const authController = {
     registerUser,
+    verifyUserEmail,
     loginUser,
     refreshToken
 }
